@@ -3,13 +3,13 @@
  * @class
  */
 class ImageGallery {
-    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number };
+    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, createImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number };
     private galleryImageContainer: HTMLDivElement;
     private galleryPreviewBox: HTMLDivElement;
     private shown: boolean;
     private shownImageID: number;
     private readonly images: Array<{ name: string, description: string }>;
-    private imageElements: HTMLImageElement[];
+    private imageElements: Array<HTMLImageElement>;
     private loadedImages: { number: { HTMLImageElement } };
 
     /**
@@ -18,18 +18,19 @@ class ImageGallery {
      * @param {Array<{string, string}>} images - All images for the gallery
      * @param {{}} settings - Settings for the gallery
      */
-    constructor(galleryDivID: string, images: Array<{ name: string, description: string }>, settings: {} = {}) {
+    constructor(galleryDivID: string, images: Array<{ name: string, description: string }> = [], settings: {} = {}) {
         this.shown = false;
         this.shownImageID = 0;
-        this.images = [];
+        this.images = images;
         this.imageElements = [];
-        console.log(typeof this.images);
+
         this.settings = {
             wrapAround: true,
             showGalleryTitle: true,
             galleryTitle: 'Gallery',
             galleryType: 0, // TODO: Implement different gallery types
             showImageDescription: true,
+            createImages: true,
             imageBaseDirectory: 'assets/images/',
             useLargeImages: true,
             smallImageDirectory: 'small/',
@@ -72,18 +73,24 @@ class ImageGallery {
         this.galleryPreviewBox.style.width = `${this.settings.boxWidth * 100}%`;
         this.galleryPreviewBox.style.height = `${this.settings.boxHeight * 100}%`;
 
+        this.initImages();
         this.addListeners();
-        this.createImages();
     }
 
-    // TODO: Different load methods
-    private createImages() {
-        let ctr = 0;
-        for (const img of this.images) {
-            const i = document.createElement('img');
-            i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
-            i.alt = img.description;
-            i.dataset.id = (ctr++).toString();
+    private initImages() {
+        if (this.settings.createImages) {
+            // Create images
+            let ctr = 0;
+            for (const img of this.images) {
+                const i = document.createElement('img');
+                i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
+                i.alt = img.description;
+                i.dataset.id = (ctr++).toString();
+                this.imageElements.push(i);  // TODO: Test this - should work
+            }
+        } else {
+            // Select images from page
+            console.log(this.galleryImageContainer.querySelectorAll('img') || []);  // TODO: Test and debug select method
         }
     }
 
@@ -121,7 +128,7 @@ class ImageGallery {
      */
     private show() {
         if (this.shown) return;
-        disableScrolling();
+        this.disableScrolling();
         this.galleryPreviewBox.style.display = 'block';
         this.shown = true;
     }
@@ -131,7 +138,7 @@ class ImageGallery {
      */
     private hide() {
         if (!this.shown) return;
-        enableScrolling();
+        this.enableScrolling();
         this.galleryPreviewBox.style.display = 'none';
         this.shown = false;
     }
@@ -159,40 +166,56 @@ class ImageGallery {
      */
     private loadImage() {
     }
+
+
+    /*
+        Some helper functions
+    */
+    /**
+     * Enables page scrolling
+     */
+    private enableScrolling() {
+        window.onscroll = () => true;
+    }
+
+    /**
+     * Disables page scrolling
+     */
+    private disableScrolling() {
+        const x = scrollX;
+        const y = scrollY;
+        window.onscroll = () => scrollTo(x, y);
+    }
+
+    /**
+     * Returns the page height
+     * @return {number} Page height
+     */
+    private getPageHeight() {
+        return document.documentElement.clientHeight;
+    }
+
+    /**
+     * Returns the maximum box height
+     * @return {number} Maximum box height
+     */
+    private getMaxBoxHeight() {
+        return this.getPageHeight() * this.settings.boxHeight;
+    }
+
+    /**
+     * Returns the page width
+     * @return {number} Page width
+     */
+    private getPageWidth() {
+        return document.documentElement.clientWidth;
+    }
+
+    /**
+     * Returns the maximum box width
+     * @return {number} Maximum box width
+     */
+    private getMaxBoxWidth() {
+        return this.getPageWidth() * this.settings.boxWidth;
+    }
 }
-
-
-/**
- * Enables page scrolling
- */
-const enableScrolling = () => window.onscroll = () => true;
-
-/**
- * Disables page scrolling
- */
-const disableScrolling = () => {
-    const x = scrollX;
-    const y = scrollY;
-    window.onscroll = () => scrollTo(x, y);
-};
-
-/**
- * Returns the center of the page
- * @return {{x: number, y: number}}
- */
-const getPageCenter = () => ({
-    x: scrollX + document.documentElement.clientWidth / 2,
-    y: scrollY + document.documentElement.clientHeight / 2,
-});
-
-/**
- * Returns the window width
- * @return {number} Page width
- */
-const getWidth = () => document.documentElement.clientWidth;
-
-/**
- * Returns the window height
- * @return {number} Page height
- */
-const getHeight = () => document.documentElement.clientHeight;
