@@ -9,7 +9,8 @@ class ImageGallery {
     private shown: boolean;
     private shownImageID: number;
     private readonly images: Array<{ name: string, description: string }>;
-    private imageElements: Array<HTMLImageElement>;
+    private largeImageElements: Array<HTMLImageElement>;
+    private readonly smallImageElements: Array<HTMLImageElement>;
     private loadedImages: { number: { HTMLImageElement } };
 
     /**
@@ -22,7 +23,8 @@ class ImageGallery {
         this.shown = false;
         this.shownImageID = 0;
         this.images = images;
-        this.imageElements = [];
+        this.largeImageElements = new Array<HTMLImageElement>();
+        this.smallImageElements = new Array<HTMLImageElement>();
 
         this.settings = {
             wrapAround: true,
@@ -69,7 +71,8 @@ class ImageGallery {
 
         // Basic styles
         this.galleryPreviewBox.style.display = 'none';
-        this.galleryPreviewBox.style.position = 'relative';
+        this.galleryPreviewBox.style.position = 'absolute';
+        this.galleryPreviewBox.style.background = '#555';
         this.galleryPreviewBox.style.width = `${this.settings.boxWidth * 100}%`;
         this.galleryPreviewBox.style.height = `${this.settings.boxHeight * 100}%`;
 
@@ -83,10 +86,16 @@ class ImageGallery {
             let ctr = 0;
             for (const img of this.images) {
                 const i = document.createElement('img');
-                i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
+                i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.largeImageDirectory : '') + img.name;
                 i.alt = img.description;
                 i.dataset.id = (ctr++).toString();
-                this.imageElements.push(i);  // TODO: Test this - should work
+                i.style.display = 'none';
+                this.largeImageElements.push(i);  // TODO: Test this - should work
+
+                i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
+                i.style.display = 'block';
+                this.smallImageElements.push(i);
+                this.galleryImageContainer.appendChild(i);
             }
         } else {
             // Select images from page
@@ -99,7 +108,7 @@ class ImageGallery {
      */
     private addListeners() {
         // Navigation
-        this.galleryPreviewBox.addEventListener('keypress', e => {
+        document.addEventListener('keydown', e => {
             switch (e.key.toLocaleLowerCase()) {
                 case 'leftarrow':
                 case 'left':
@@ -118,9 +127,16 @@ class ImageGallery {
                 default:
                     break;
             }
-        })
+        });
 
         // Image events
+        for (const img of this.smallImageElements) {
+            img.addEventListener('click', () => {
+                this.shownImageID = parseInt(img.dataset.id);
+                this.loadImage();
+                this.show();
+            })
+        }
     }
 
     /**
