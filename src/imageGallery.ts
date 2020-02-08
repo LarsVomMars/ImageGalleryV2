@@ -122,12 +122,12 @@ class ImageGallery {
         // Navigation
         document.addEventListener('keydown', e => {
             switch (e.key.toLocaleLowerCase()) {
-                case 'leftarrow':
+                case 'arrowleft':
                 case 'left':
                 case 'h':
                     this.prevImage();
                     break;
-                case 'rightarrow':
+                case 'arrowright':
                 case 'right':
                 case 'l':
                     this.nextImage();
@@ -185,7 +185,7 @@ class ImageGallery {
      * Sets the previous image index
      */
     private prevImage() {
-        if (this.shownImageID - 1 > 0) this.shownImageID--;
+        if (this.shownImageID - 1 >= 0) this.shownImageID--;
         else if (this.settings.wrapAround) this.shownImageID = this.images.length - 1;
         this.loadImage();
     }
