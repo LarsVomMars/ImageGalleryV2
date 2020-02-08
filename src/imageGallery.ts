@@ -9,9 +9,9 @@ class ImageGallery {
     private shown: boolean;
     private shownImageID: number;
     private readonly images: Array<{ name: string, description: string }>;
-    private largeImageElements: Array<HTMLImageElement>;
-    private readonly smallImageElements: Array<HTMLImageElement>;
-    private loadedImages: { number: { HTMLImageElement } };
+    private largeImageElements: {};
+    private readonly smallImageElements: {};
+    private loadedImages: {};
 
     /**
      * @constructor
@@ -23,8 +23,9 @@ class ImageGallery {
         this.shown = false;
         this.shownImageID = 0;
         this.images = images;
-        this.largeImageElements = new Array<HTMLImageElement>();
-        this.smallImageElements = new Array<HTMLImageElement>();
+        this.largeImageElements = {};
+        this.smallImageElements = {};
+        this.loadedImages = {};
 
         this.settings = {
             wrapAround: true,
@@ -85,17 +86,28 @@ class ImageGallery {
             // Create images
             let ctr = 0;
             for (const img of this.images) {
-                const i = document.createElement('img');
-                i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.largeImageDirectory : '') + img.name;
-                i.alt = img.description;
-                i.dataset.id = (ctr++).toString();
-                i.style.display = 'none';
-                this.largeImageElements.push(i);  // TODO: Test this - should work
+                // Preview box images
+                const li = document.createElement('img');
+                li.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.largeImageDirectory : '') + img.name;
+                li.alt = img.description;
+                li.style.position = 'absolute';
+                li.style.display = 'none';
+                li.style.left = '5%';
+                li.style.top = '5%';
+                li.style.maxWidth = `${this.getMaxBoxWidth() * .9}px`;
+                li.style.maxHeight = `${this.getMaxBoxHeight() * .9}px`;
+                li.dataset.id = (ctr++).toString();
+                this.largeImageElements[ctr - 1] = li;
 
-                i.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
-                i.style.display = 'block';
-                this.smallImageElements.push(i);
-                this.galleryImageContainer.appendChild(i);
+                // Gallery images
+                const si = document.createElement('img');
+                si.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
+                si.alt = img.description;
+                si.style.display = 'block';
+                si.style.cursor = 'pointer';
+                si.dataset.id = (ctr - 1).toString();
+                this.smallImageElements[ctr - 1] = si;
+                this.galleryImageContainer.appendChild(si);
             }
         } else {
             // Select images from page
@@ -130,7 +142,8 @@ class ImageGallery {
         });
 
         // Image events
-        for (const img of this.smallImageElements) {
+        for (const imgIndex in this.smallImageElements) {
+            const img = this.smallImageElements[imgIndex];
             img.addEventListener('click', () => {
                 this.shownImageID = parseInt(img.dataset.id);
                 this.loadImage();
@@ -181,6 +194,19 @@ class ImageGallery {
      * Loads the {this.shownImageID}th image into the container
      */
     private loadImage() {
+        for (const ii in this.loadedImages) this.loadedImages[ii].style.display = 'none';
+
+        // Load already loaded image
+        if (this.loadedImages.hasOwnProperty(this.shownImageID)) {
+            this.loadedImages[this.shownImageID].style.display = 'block';
+            return;
+        }
+
+        // Load new image
+        const img2load = this.largeImageElements[this.shownImageID].cloneNode();
+        img2load.style.display = 'block';
+        this.galleryPreviewBox.appendChild(img2load);
+        this.loadedImages[this.shownImageID] = img2load;
     }
 
 
