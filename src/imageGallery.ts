@@ -3,7 +3,7 @@
  * @class
  */
 class ImageGallery {
-    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, createImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number };
+    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, createImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number, maxImageWidth: number, maxImageHeight: number };
     private galleryImageContainer: HTMLDivElement;
     private galleryPreviewBox: HTMLDivElement;
     private shown: boolean;
@@ -40,6 +40,8 @@ class ImageGallery {
             largeImageDirectory: 'large/',
             boxHeight: .7,
             boxWidth: .8,
+            maxImageWidth: .8,
+            maxImageHeight: .8
         };
 
         // Merge settings
@@ -65,7 +67,7 @@ class ImageGallery {
             h1.textContent = this.settings.galleryTitle;
             h1.style.position = 'absolute';
             h1.style.width = '100%';
-            h1.style.top = '-20px';
+            h1.style.top = '2%';
             h1.style.textAlign = 'center';
             this.galleryPreviewBox.appendChild(h1);
         }
@@ -73,9 +75,10 @@ class ImageGallery {
         // Basic styles
         this.galleryPreviewBox.style.display = 'none';
         this.galleryPreviewBox.style.position = 'absolute';
-        this.galleryPreviewBox.style.background = '#555';
         this.galleryPreviewBox.style.width = `${this.settings.boxWidth * 100}%`;
         this.galleryPreviewBox.style.height = `${this.settings.boxHeight * 100}%`;
+        this.galleryPreviewBox.style.left = this.galleryPreviewBox.style.right = '0';
+        this.galleryPreviewBox.style.marginLeft = this.galleryPreviewBox.style.marginRight = 'auto';
 
         this.initImages();
         this.addListeners();
@@ -85,6 +88,7 @@ class ImageGallery {
         if (this.settings.createImages) {
             // Create images
             let ctr = 0;
+            const boxId = this.galleryImageContainer.id
             for (const img of this.images) {
                 // Preview box images
                 const li = document.createElement('img');
@@ -92,16 +96,19 @@ class ImageGallery {
                 li.alt = img.description;
                 li.style.position = 'absolute';
                 li.style.display = 'none';
-                li.style.left = '5%';
-                li.style.top = '5%';
-                li.style.maxWidth = `${this.getMaxBoxWidth() * .9}px`;
-                li.style.maxHeight = `${this.getMaxBoxHeight() * .9}px`;
+                li.style.top = '15%';
+                li.style.left = li.style.right = '0';
+                li.style.marginLeft = li.style.marginRight = 'auto';
+                li.style.maxWidth = `${this.settings.maxImageWidth * 100}%`;
+                li.style.maxHeight = `${this.settings.maxImageWidth * 100}%`;
                 li.dataset.id = (ctr++).toString();
+                li.dataset.ratio = (li.naturalHeight / li.naturalWidth).toString();
                 this.largeImageElements[ctr - 1] = li;
 
                 // Gallery images
                 const si = document.createElement('img');
                 si.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
+                si.classList.add(`${boxId}-image`)
                 si.alt = img.description;
                 si.style.display = 'block';
                 si.style.cursor = 'pointer';
@@ -145,7 +152,7 @@ class ImageGallery {
         for (const imgIndex in this.smallImageElements) {
             const img = this.smallImageElements[imgIndex];
             img.addEventListener('click', () => {
-                this.shownImageID = parseInt(img.dataset.id);
+                this.shownImageID = +img.dataset.id;
                 this.loadImage();
                 this.show();
             })
@@ -205,6 +212,7 @@ class ImageGallery {
         // Load new image
         const img2load = this.largeImageElements[this.shownImageID].cloneNode();
         img2load.style.display = 'block';
+        console.log(img2load.naturalWidth * .8, img2load.naturalHeight * .8);
         this.galleryPreviewBox.appendChild(img2load);
         this.loadedImages[this.shownImageID] = img2load;
     }
