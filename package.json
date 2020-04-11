@@ -1,6 +1,6 @@
 {
   "name": "imagegalleryv2",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The new version of the ImageGallery",
   "main": "index.js",
   "author": "LarsVomMars",
