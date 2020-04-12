@@ -3,7 +3,7 @@
  * @class
  */
 class ImageGallery {
-    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, createImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number, maxImageWidth: number, maxImageHeight: number };
+    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, createImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number, maxImageWidth: number, maxImageHeight: number, directDownload: boolean };
     private galleryImageContainer: HTMLDivElement;
     private galleryPreviewBox: HTMLDivElement;
     private shown: boolean;
@@ -45,7 +45,8 @@ class ImageGallery {
             boxHeight: .7,
             boxWidth: .8,
             maxImageWidth: .8,
-            maxImageHeight: .8
+            maxImageHeight: .8,
+            directDownload: true,
         };
 
         // Merge settings
@@ -89,37 +90,64 @@ class ImageGallery {
         this.closeBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>`
         this.closeBtn.style.position = 'absolute';
         this.closeBtn.style.right = this.closeBtn.style.top = '15px';
-        this.closeBtn.onmouseenter = () => {this.closeBtn.style.opacity = '0.5'; this.closeBtn.style.cursor = 'pointer';}
-        this.closeBtn.onmouseleave = () => {this.closeBtn.style.opacity = '1'; this.closeBtn.style.cursor = 'default';}
+        this.closeBtn.onmouseenter = () => {
+            this.closeBtn.style.opacity = '0.5';
+            this.closeBtn.style.cursor = 'pointer';
+        }
+        this.closeBtn.onmouseleave = () => {
+            this.closeBtn.style.opacity = '1';
+            this.closeBtn.style.cursor = 'default';
+        }
 
         this.prevBtn = document.createElement('span');
         this.prevBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>`;
         this.prevBtn.style.position = 'relative';
         this.prevBtn.title = 'Previous image';
-        this.prevBtn.onmouseenter = () => {this.prevBtn.style.opacity = '0.5'; this.prevBtn.style.cursor = 'pointer';}
-        this.prevBtn.onmouseleave = () => {this.prevBtn.style.opacity = '1'; this.prevBtn.style.cursor = 'default';}
+        this.prevBtn.onmouseenter = () => {
+            this.prevBtn.style.opacity = '0.5';
+            this.prevBtn.style.cursor = 'pointer';
+        }
+        this.prevBtn.onmouseleave = () => {
+            this.prevBtn.style.opacity = '1';
+            this.prevBtn.style.cursor = 'default';
+        }
 
         this.nextBtn = document.createElement('span');
         this.nextBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>`;
         this.nextBtn.style.position = 'relative';
         this.prevBtn.title = 'Next image';
-        this.nextBtn.onmouseenter = () => {this.nextBtn.style.opacity = '0.5'; this.nextBtn.style.cursor = 'pointer';}
-        this.nextBtn.onmouseleave = () => {this.nextBtn.style.opacity = '1'; this.nextBtn.style.cursor = 'default';}
+        this.nextBtn.onmouseenter = () => {
+            this.nextBtn.style.opacity = '0.5';
+            this.nextBtn.style.cursor = 'pointer';
+        }
+        this.nextBtn.onmouseleave = () => {
+            this.nextBtn.style.opacity = '1';
+            this.nextBtn.style.cursor = 'default';
+        }
 
-        this.downBtn = document.createElement('span');
-        this.downBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>`
-        this.downBtn.style.position = 'relative';
-        this.downBtn.title = 'Download image';
-        this.downBtn.onmouseenter = () => {this.downBtn.style.opacity = '0.5'; this.downBtn.style.cursor = 'pointer';}
-        this.downBtn.onmouseleave = () => {this.downBtn.style.opacity = '1'; this.downBtn.style.cursor = 'default';}
+        if (this.settings.directDownload) {
+            this.downBtn = document.createElement('span');
+            this.downBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="gray" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>`
+            this.downBtn.style.position = 'relative';
+            this.downBtn.title = 'Download image';
+            this.downBtn.onmouseenter = () => {
+                this.downBtn.style.opacity = '0.5';
+                this.downBtn.style.cursor = 'pointer';
+            }
+            this.downBtn.onmouseleave = () => {
+                this.downBtn.style.opacity = '1';
+                this.downBtn.style.cursor = 'default';
+            }
+        }
 
         const navDiv = document.createElement('span');
-        navDiv.append(this.prevBtn, this.downBtn, this.nextBtn)
+        if (this.settings.directDownload) navDiv.append(this.prevBtn, this.downBtn, this.nextBtn);
+        else navDiv.append(this.prevBtn, this.nextBtn);  // TODO: Fix center alignment
         navDiv.style.position = 'absolute';
         navDiv.style.bottom = '-3%';
         navDiv.style.left = navDiv.style.right = '0';
         navDiv.style.marginLeft = navDiv.style.marginRight = 'auto';
-        navDiv.style.width = '10%';
+        navDiv.style.width = (this.settings.directDownload ? '96' : '64') + 'px';
 
         this.galleryPreviewBox.append(this.closeBtn, navDiv);
 
@@ -205,14 +233,16 @@ class ImageGallery {
         this.closeBtn.addEventListener('click', () => this.hide());
         this.prevBtn.addEventListener('click', () => this.prevImage());
         this.nextBtn.addEventListener('click', () => this.nextImage());
-        this.downBtn.addEventListener('click', () => {
-            const img = this.loadedImages[this.shownImageID]
-            const a = document.createElement('a');
-            a.target = '_self';
-            a.download = `download-${location.host}-${img.src.split('/').pop()}`;
-            a.href = img.src;
-            a.click();
-        })
+        if (this.settings.directDownload) {
+            this.downBtn.addEventListener('click', () => {
+                const img = this.loadedImages[this.shownImageID]
+                const a = document.createElement('a');
+                a.target = '_self';
+                a.download = `download-${location.host}-${img.src.split('/').pop()}`;
+                a.href = img.src;
+                a.click();
+            })
+        }
     }
 
     /**
