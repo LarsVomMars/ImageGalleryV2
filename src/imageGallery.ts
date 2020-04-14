@@ -3,7 +3,7 @@
  * @class
  */
 class ImageGallery {
-    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, createImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number, maxImageWidth: number, maxImageHeight: number, directDownload: boolean };
+    private readonly settings: { wrapAround: boolean, showGalleryTitle: boolean, galleryTitle: string, galleryType: number, showImageDescription: boolean, selectImages: boolean, imageBaseDirectory: string, useLargeImages: boolean, smallImageDirectory: string, largeImageDirectory: string, boxHeight: number, boxWidth: number, maxImageWidth: number, maxImageHeight: number, directDownload: boolean };
     private galleryImageContainer: HTMLDivElement;
     private galleryPreviewBox: HTMLDivElement;
     private shown: boolean;
@@ -35,9 +35,9 @@ class ImageGallery {
             wrapAround: true,
             showGalleryTitle: true,
             galleryTitle: 'Gallery',
-            galleryType: 0, // TODO: Implement different gallery types
-            showImageDescription: true,
-            createImages: true,
+            galleryType: 0,  // TODO: Implement - 0, 1: Cycler, 2: Image
+            showImageDescription: true,  // TODO: Implement
+            selectImages: false,  // TODO: Implement
             imageBaseDirectory: 'assets/images/',
             useLargeImages: true,
             smallImageDirectory: 'small/',
@@ -142,7 +142,7 @@ class ImageGallery {
 
         const navDiv = document.createElement('span');
         if (this.settings.directDownload) navDiv.append(this.prevBtn, this.downBtn, this.nextBtn);
-        else navDiv.append(this.prevBtn, this.nextBtn);  // TODO: Fix center alignment
+        else navDiv.append(this.prevBtn, this.nextBtn);
         navDiv.style.position = 'absolute';
         navDiv.style.bottom = '-3%';
         navDiv.style.left = navDiv.style.right = '0';
@@ -156,27 +156,39 @@ class ImageGallery {
     }
 
     private initImages() {
-        if (this.settings.createImages) {
-            // Create images
-            let ctr = 0;
-            const boxId = this.galleryImageContainer.id
-            for (const img of this.images) {
-                // Preview box images
-                const li = document.createElement('img');
+        const images = this.galleryImageContainer.querySelectorAll('img');
+        if (this.settings.selectImages) {
+            // @ts-ignore -- this works in js :c
+            for (const img: HTMLImageElement of images) {
+                const name = img.src;
+                const description = img.alt;
+                this.images.push({name, description})
+            }
+        }
+        // Create images
+        let ctr = 0;
+        const boxId = this.galleryImageContainer.id
+        for (const img of this.images) {
+            // Preview box images
+            const li = document.createElement('img');
+            if (!this.settings.selectImages)
                 li.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.largeImageDirectory : '') + img.name;
-                li.alt = img.description;
-                li.style.position = 'absolute';
-                li.style.display = 'none';
-                li.style.top = '15%';
-                li.style.left = li.style.right = '0';
-                li.style.marginLeft = li.style.marginRight = 'auto';
-                li.style.maxWidth = `${this.settings.maxImageWidth * 100}%`;
-                li.style.maxHeight = `${this.settings.maxImageWidth * 100}%`;
-                li.dataset.id = (ctr++).toString();
-                li.dataset.ratio = (li.naturalHeight / li.naturalWidth).toString();
-                this.largeImageElements[ctr - 1] = li;
+            else li.src = img.name;  // TODO: Implement large images
+            li.alt = img.description;
+            li.style.position = 'absolute';
+            li.style.display = 'none';
+            li.style.top = '15%';
+            li.style.left = li.style.right = '0';
+            li.style.marginLeft = li.style.marginRight = 'auto';
+            li.style.maxWidth = `${this.settings.maxImageWidth * 100}%`;
+            li.style.maxHeight = `${this.settings.maxImageWidth * 100}%`;
+            li.dataset.id = (ctr++).toString();
+            li.dataset.ratio = (li.naturalHeight / li.naturalWidth).toString();
+            console.log(li);
+            this.largeImageElements[ctr - 1] = li;
 
-                // Gallery images
+            // Gallery images
+            if (!this.settings.selectImages) {
                 const si = document.createElement('img');
                 si.src = this.settings.imageBaseDirectory + (this.settings.useLargeImages ? this.settings.smallImageDirectory : '') + img.name;
                 si.classList.add(`${boxId}-image`)
@@ -186,11 +198,14 @@ class ImageGallery {
                 si.dataset.id = (ctr - 1).toString();
                 this.smallImageElements[ctr - 1] = si;
                 this.galleryImageContainer.appendChild(si);
+            } else {
+                this.smallImageElements[ctr - 1] = images[ctr - 1]
+                this.smallImageElements[ctr - 1].dataset.id = (ctr-1).toString();
             }
-        } else {
-            // Select images from page
-            console.log(this.galleryImageContainer.querySelectorAll('img') || []);  // TODO: Test and debug select method
         }
+        console.log(this.smallImageElements);
+        console.log(this.largeImageElements);
+
     }
 
     /**
@@ -224,6 +239,7 @@ class ImageGallery {
             const img = this.smallImageElements[imgIndex];
             img.addEventListener('click', () => {
                 this.shownImageID = +img.dataset.id;
+                console.log(this.shownImageID);
                 this.loadImage();
                 this.show();
             })
@@ -297,6 +313,7 @@ class ImageGallery {
 
         // Load new image
         const img2load = this.largeImageElements[this.shownImageID].cloneNode();
+        console.log(img2load);
         img2load.style.display = 'block';
         console.log(img2load.naturalWidth * .8, img2load.naturalHeight * .8);
         this.galleryPreviewBox.appendChild(img2load);
